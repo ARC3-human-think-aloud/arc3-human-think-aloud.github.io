@@ -1,0 +1,48 @@
+name: Publish project website
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure dataset and stage static files
+        env:
+          HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+          HF_DATASET_REVISION: ${{ vars.HF_DATASET_REVISION }}
+        run: |
+          python - <<'PY'
+          import json, os, shutil, subprocess, sys
+          from pathlib import Path
+          repo = os.environ.get('HF_DATASET_REPO')
+          if repo:
+              subprocess.run([sys.executable, 'tools/configure_release.py', repo, '--revision', os.environ.get('HF_DATASET_REVISION') or 'main'], check=True)
+          text = Path('site-config.js').read_text()
+          config = json.loads(text.split('=', 1)[1].strip().rstrip(';'))
+          if not config['datasetBaseUrl'].startswith('https://'):
+              raise SystemExit('Set repository variable HF_DATASET_REPO to owner/dataset, or run tools/configure_release.py before pushing.')
+          out = Path('_site'); out.mkdir(exist_ok=True)
+          for name in ['index.html', 'app.js', 'style.css', 'site-config.js', '.nojekyll', 'data', 'assets']:
+              src = Path(name)
+              if src.is_dir(): shutil.copytree(src, out / name, dirs_exist_ok=True)
+              else: shutil.copy2(src, out / name)
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

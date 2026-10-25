@@ -1,0 +1,1 @@
+window.SITE_CONFIG = {"datasetBaseUrl": "https://huggingface.co/datasets/hellohawaii/ARC3-human-think-aloud/resolve/main/", "datasetRepo": "hellohawaii/ARC3-human-think-aloud", "datasetRevision": "main"};

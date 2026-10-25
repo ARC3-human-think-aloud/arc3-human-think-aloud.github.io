@@ -1,0 +1,37 @@
+静态项目网站发布说明
+
+一、网站与数据
+  website/ 是可直接发布的网站；website.zip 是该目录的完整快照。
+  数据集：https://huggingface.co/datasets/hellohawaii/ARC3-human-think-aloud
+  site-config.js 配置数据地址；绑定上述仓库后，录音与游戏画面时间线从 HF 读取。
+  网页、论文 PDF、索引、转录与标注的浏览数据随网站发布。
+  访问者无需登录 HF，也无需 token；数据集需要保持公开、非 gated。
+
+二、发布到 GitHub Pages
+  1. 将 website/ 内的所有内容放入新 GitHub 仓库根目录。
+     index.html 应在仓库根目录，保留 .github/、.gitignore 和 .nojekyll。
+     不要上传整个研究工作区、hf-dataset/ 或任何 ZIP。
+  2. 在仓库 Settings → Pages → Source 中选择 GitHub Actions。
+  3. 将文件推送到 main 分支，随包的工作流会自动部署。
+     若已先推送，在 Actions → Publish project website → Run workflow 手动运行。
+  已配置 HTTPS 数据地址时，无需设置 Actions 变量或 HF 凭据。
+  用户主页仓库名为 用户名.github.io；普通项目仓库发布在 用户名.github.io/仓库名/。
+  网站支持项目子目录。
+
+三、本地预览
+  在 website/ 目录执行：
+    python -m http.server 8767 --bind 127.0.0.1
+  打开 http://localhost:8767/，保持联网即可从 HF 加载数据。
+  无需本地 hf-dataset/、专用 API 或音频转换服务。
+  不支持直接双击 index.html 使用 file:// 打开。
+
+四、以后更换数据地址（可选）
+  在 website/ 目录执行：
+    python tools/configure_release.py OWNER/DATASET
+  固定版本可添加 --revision TAG_OR_COMMIT；默认读取 main。
+  修改后重新推送 website/ 中的文件。已有 ZIP 不会随文件编辑自动更新。
+  也可在 GitHub Actions 仓库变量中设置 HF_DATASET_REPO 与 HF_DATASET_REVISION。
+  若更新数据内容，应同步生成网站的索引、转录和标注浏览数据。
+
+hf-dataset/ 和 hf-dataset.zip 仅用于数据集上传与搬运，不属于网站仓库。
+网站在线运行无需 Node、Python、FFmpeg 或 HF Space。
